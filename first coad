@@ -1,0 +1,268 @@
+import React, {useState, useMemo} from "react";
+import { motion } from "framer-motion";
+
+// NiryatBazar - Single-file React frontend (Tailwind CSS)
+// - Tailwind is assumed to be available in the project
+// - Framer Motion used for small animations
+// - This is a self-contained example component you can drop into a Vite/CRA app
+
+// Mock data (replace with API calls)
+const CATEGORIES = [
+  "All",
+  "Home & Garden",
+  "Electronics",
+  "Apparel",
+  "Machinery",
+  "Construction",
+  "Food & Beverage",
+  "Packaging",
+];
+
+const SAMPLE_PRODUCTS = Array.from({length: 24}).map((_, i) => ({
+  id: i + 1,
+  title: `Premium Product ${i + 1}`,
+  price: (Math.round((Math.random() * 900 + 100) * 100) / 100).toFixed(2),
+  moq: [50, 100, 200][i % 3],
+  rating: (Math.random() * 2 + 3).toFixed(1),
+  orders: Math.floor(Math.random() * 1200),
+  image: `https://picsum.photos/seed/niryat-${i + 1}/600/400`,
+  supplier: `Regatta Supplies ${((i % 5) + 1)}`,
+  country: ["India","Italy","Turkey","China","Spain"][i % 5]
+}));
+
+// Small UI components
+function IconSearch(){
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+    </svg>
+  );
+}
+function IconCart(){
+  return (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 7h13" />
+    </svg>
+  );
+}
+
+function Header({onSearch}){
+  const [q, setQ] = useState("");
+  return (
+    <header className="bg-white shadow-sm sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-4">
+            <div className="text-2xl font-extrabold text-indigo-600">NiryatBazar</div>
+            <div className="hidden sm:flex items-center gap-1 text-sm text-gray-500">
+              <span className="px-2 py-1 rounded-md bg-indigo-50 text-indigo-700">B2B</span>
+              <span>Global Sourcing • Verified Suppliers</span>
+            </div>
+          </div>
+
+          <div className="flex-1 px-4">
+            <div className="max-w-2xl mx-auto relative">
+              <label htmlFor="search" className="sr-only">Search products</label>
+              <div className="flex border rounded-lg overflow-hidden">
+                <div className="px-3 flex items-center bg-gray-50">
+                  <IconSearch />
+                </div>
+                <input id="search" value={q} onChange={(e)=>setQ(e.target.value)} onKeyDown={(e)=>{ if(e.key==='Enter') onSearch(q) }} className="flex-1 px-3 py-2 focus:outline-none" placeholder="Search products, suppliers, categories..." />
+                <button className="px-4 bg-indigo-600 text-white hover:bg-indigo-700" onClick={()=>onSearch(q)}>Search</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-50">
+              <img src="https://flagcdn.com/w20/in.png" alt="India" className="w-5 h-4 object-cover rounded-sm" />
+              <span className="text-sm">India</span>
+            </button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-50">
+              <IconCart />
+              <span className="text-sm">Cart</span>
+            </button>
+            <button className="px-3 py-2 bg-indigo-50 text-indigo-700 rounded">Sign in</button>
+          </div>
+        </div>
+      </div>
+
+      <nav className="border-t">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4 overflow-x-auto py-2">
+            {CATEGORIES.map(cat => (
+              <button key={cat} className="px-3 py-1 rounded-md hover:bg-indigo-50 text-sm">{cat}</button>
+            ))}
+          </div>
+        </div>
+      </nav>
+    </header>
+  );
+}
+
+function ProductCard({p, onQuickView}){
+  return (
+    <motion.div layout whileHover={{scale:1.02}} className="bg-white border rounded-lg shadow-sm overflow-hidden">
+      <div className="aspect-w-4 aspect-h-3 bg-gray-100">
+        <img src={p.image} alt={p.title} className="object-cover w-full h-full" />
+      </div>
+      <div className="p-3">
+        <h3 className="text-sm font-semibold truncate">{p.title}</h3>
+        <div className="text-xs text-gray-500 mt-1">Supplier: <span className="text-gray-700">{p.supplier}</span></div>
+        <div className="flex items-baseline justify-between mt-2">
+          <div>
+            <div className="text-lg font-bold">${p.price}</div>
+            <div className="text-xs text-gray-500">MOQ: {p.moq} pcs</div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm">⭐ {p.rating}</div>
+            <div className="text-xs text-gray-400">{p.orders} orders</div>
+          </div>
+        </div>
+        <div className="mt-3 flex gap-2">
+          <button onClick={()=>onQuickView(p)} className="flex-1 px-2 py-2 border rounded text-sm">Quick View</button>
+          <button className="px-3 py-2 bg-indigo-600 text-white rounded text-sm">Contact</button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function SidebarFilter({filters, setFilters}){
+  const update = (k,v) => setFilters(prev => ({...prev,[k]:v}));
+  return (
+    <aside className="hidden lg:block w-72">
+      <div className="bg-white border rounded-lg p-4 sticky top-24">
+        <h4 className="font-semibold mb-3">Filters</h4>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-gray-500">Price range</label>
+            <div className="flex gap-2 mt-2">
+              <input type="number" value={filters.minPrice} onChange={e=>update('minPrice', e.target.value)} className="w-1/2 p-2 border rounded" placeholder="Min" />
+              <input type="number" value={filters.maxPrice} onChange={e=>update('maxPrice', e.target.value)} className="w-1/2 p-2 border rounded" placeholder="Max" />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">Supplier country</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {["India","China","Turkey","Italy","Spain"].map(c=> (
+                <button key={c} onClick={()=>update('country', c)} className={`px-2 py-1 border rounded text-sm ${filters.country===c? 'bg-indigo-50 text-indigo-700':''}`}>{c}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">Sort by</label>
+            <select value={filters.sort} onChange={e=>update('sort', e.target.value)} className="w-full mt-2 p-2 border rounded">
+              <option value="relevance">Relevance</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="orders">Most Orders</option>
+              <option value="rating">Top Rated</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+export default function NiryatBazarApp(){
+  const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState({minPrice:'', maxPrice:'', country:'', sort:'relevance'});
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const onSearch = (q) => setQuery(q);
+
+  const filtered = useMemo(()=>{
+    let list = SAMPLE_PRODUCTS.slice();
+    if(query) list = list.filter(p => (p.title + p.supplier + p.country).toLowerCase().includes(query.toLowerCase()));
+    if(filters.country) list = list.filter(p=>p.country===filters.country);
+    if(filters.minPrice) list = list.filter(p=>Number(p.price) >= Number(filters.minPrice));
+    if(filters.maxPrice) list = list.filter(p=>Number(p.price) <= Number(filters.maxPrice));
+    if(filters.sort === 'price_asc') list.sort((a,b)=> Number(a.price)-Number(b.price));
+    if(filters.sort === 'price_desc') list.sort((a,b)=> Number(b.price)-Number(a.price));
+    if(filters.sort === 'orders') list.sort((a,b)=> b.orders - a.orders);
+    if(filters.sort === 'rating') list.sort((a,b)=> Number(b.rating) - Number(a.rating));
+    return list;
+  }, [query, filters]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header onSearch={onSearch} />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-6">
+        <section>
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold">Search Results</h2>
+              <div className="text-sm text-gray-500">{filtered.length} products found</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="text-sm px-3 py-2 border rounded">Trade Assurance</button>
+              <button className="text-sm px-3 py-2 border rounded">Verified</button>
+            </div>
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filtered.map(p=> (
+              <ProductCard key={p.id} p={p} onQuickView={setSelectedProduct} />
+            ))}
+          </div>
+
+          {/* Pagination (simple) */}
+          <div className="mt-6 flex justify-center">
+            <div className="inline-flex gap-2">
+              <button className="px-3 py-2 border rounded">Prev</button>
+              <button className="px-3 py-2 border rounded">1</button>
+              <button className="px-3 py-2 border rounded">2</button>
+              <button className="px-3 py-2 border rounded">Next</button>
+            </div>
+          </div>
+        </section>
+
+        <SidebarFilter filters={filters} setFilters={setFilters} />
+      </main>
+
+      <footer className="bg-white border-t mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-gray-600">© {new Date().getFullYear()} NiryatBazar • Connect global buyers & suppliers</div>
+          <div className="flex gap-4 text-sm text-gray-500">
+            <a href="#">About</a>
+            <a href="#">Help</a>
+            <a href="#">Privacy</a>
+          </div>
+        </div>
+      </footer>
+
+      {/* Quick View Modal */}
+      {selectedProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <motion.div initial={{y:20, opacity:0}} animate={{y:0, opacity:1}} exit={{y:20, opacity:0}} className="bg-white rounded-lg max-w-3xl w-full overflow-hidden">
+            <div className="flex gap-4 p-4">
+              <img src={selectedProduct.image} alt={selectedProduct.title} className="w-1/2 object-cover rounded" />
+              <div className="flex-1">
+                <h3 className="text-xl font-bold">{selectedProduct.title}</h3>
+                <div className="text-sm text-gray-600 mt-1">Supplier: {selectedProduct.supplier} • {selectedProduct.country}</div>
+                <div className="mt-4 text-2xl font-extrabold">${selectedProduct.price}</div>
+                <div className="mt-2 text-sm text-gray-500">MOQ: {selectedProduct.moq} pcs</div>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-700">Product description goes here. Replace this with API-driven content for real listings, including specs, certificate images, packing details and shipping terms.</p>
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <button className="px-4 py-2 bg-indigo-600 text-white rounded">Contact Supplier</button>
+                  <button onClick={()=>setSelectedProduct(null)} className="px-4 py-2 border rounded">Close</button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+}
